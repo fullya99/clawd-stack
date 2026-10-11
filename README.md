@@ -1,0 +1,52 @@
+# clawd-stack
+
+Une seule stack de contexte pour tous les projets. Si une information ne vit que dans la
+conversation, elle n'existe pas : le dépôt seul doit suffire à reprendre le travail, après un
+`/clear` comme après trois semaines.
+
+Le plugin installe une convention à trois piliers, `CODEMAP.md`, `TODOS.md` et `CHANGELOG.md`, plus
+`docs/` pour la connaissance longue et `archives/` pour ce qui est devenu faux. Chaque fichier tient
+dans un budget, et ce qui déborde descend d'un étage.
+
+Il remplace `cloture-session`, `deep-plan` et `clawd-audit-md`. Retire-les s'ils sont installés,
+deux skills sur le même cycle se disputent le déclenchement.
+
+## Les commandes
+
+| Commande | Quand |
+|---|---|
+| `/clawd-stack:init` | Une fois, pour installer la convention dans un projet |
+| `/clawd-stack:planifier` | Pour cadrer une idée en plan sourcé et en prompt d'exécution |
+| `/clawd-stack:cloture` | En fin de session, avant un `/clear` |
+| `/clawd-stack:relance` | Après un `/clear`, pour retrouver le fil en dix lignes |
+| `/clawd-stack:audit` | Pour vérifier `CLAUDE.md` et `AGENTS.md` contre le code et les raccourcir |
+| `/clawd-stack:migrer` | Pour remettre une ancienne convention à jour (pas encore livré dans cette version) |
+
+## Installation
+
+```
+/plugin marketplace add fullya99/clawd-stack
+/plugin install clawd-stack@clawd-stack
+```
+
+Ou à la main, en copiant le dossier du skill et non celui du plugin :
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r skills/clawd-stack ~/.claude/skills/
+```
+
+Sur Codex d'OpenAI, même dossier, autre chemin de scan :
+
+```bash
+cp -r skills/clawd-stack .agents/skills/      # portée dépôt
+cp -r skills/clawd-stack ~/.agents/skills/    # portée utilisateur
+```
+
+Par ces deux voies les commandes slash ne suivent pas, elles n'existent qu'en installation plugin
+chez Claude Code. Le skill se déclenche quand même sur une demande en français.
+
+## Ce qu'il ne fait pas
+
+Il ne commite pas, ne pousse pas, et ne devine pas. Ce qu'il ne peut pas déduire du projet, il le
+demande. Bash et git suffisent, aucun serveur MCP n'est requis.
