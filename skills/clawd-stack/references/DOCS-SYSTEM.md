@@ -15,6 +15,8 @@ docs/
 │   └── <feature>.md
 ├── ops/                   # procédures rejouables (setup, deploy, migration, incident)
 │   └── <procedure>.md
+├── pieges/                # pièges qui n'ont pas de module, un registre numéroté
+│   └── README.md
 └── decisions/             # ADR, pourquoi on a tranché comme ça
     └── ADR-0001-<slug>.md
 ```
@@ -65,7 +67,7 @@ en une ligne s'il peut faire confiance au contenu. Et c'est lui que `ctx-audit.s
 détecter les fiches qui dérivent.
 
 ```markdown
-> **Statut** : ✅ à jour, vérifié le 2026-08-13
+> **Statut** : ✅ à jour, vérifié le 2026-08-13 contre `src/auth/session.ts`, commit `a1b2c3d`
 > **Type** : module
 > **Portée** : `src/auth/**`, `src/middleware/session.ts`
 > **Voir aussi** : `docs/features/connexion.md`, `docs/decisions/ADR-0003-sessions.md`
@@ -76,6 +78,10 @@ détecter les fiches qui dérivent.
 | `✅ à jour` | vérifié contre le code à la date indiquée | rien à faire |
 | `🟡 à vérifier` | le périmètre a bougé, la fiche n'a pas été relue | à traiter à la prochaine clôture |
 | `🔴 obsolète` | contenu faux ou sujet disparu | direction `archives/`, à la clôture en cours |
+
+Le statut est daté et sourcé. La date dit quand, la source dit contre quoi : un fichier, un
+commit, une commande rejouée, une page de documentation avec sa date de consultation. Un statut
+sans source n'est qu'une déclaration, et « vérifié » sans objet ne vaut rien.
 
 Un `🔴` ne survit pas à une clôture. Un `🟡` qui traîne sur deux clôtures est soit vérifié soit
 archivé, pas laissé en suspens.
@@ -122,12 +128,41 @@ plusieurs sujets, règle de style de GitLab. `ctx-audit.sh` le signale.
 
 Cite des chemins réels et cliquables comme `src/auth/session.ts:42`, pas des descriptions vagues.
 
-Mets les pièges avant les détails. La section « à savoir » fait gagner plus de temps que la
+Mets les pièges avant les détails, chacun marqué 🪤 en début de ligne. Le marqueur est ce que
+`ctx-audit.sh` compte et rattache à un propriétaire, voir plus bas.
+
+Mets les détails après. La section « à savoir » fait gagner plus de temps que la
 description exhaustive.
 
 Aucun secret. Tu indiques où se trouve une clé, jamais sa valeur.
 
 Les gabarits sont dans `templates/docs/` : `module.md`, `feature.md`, `procedure.md`, `ADR.md`.
+
+---
+
+## Les pièges, un propriétaire chacun
+
+Un piège est ce qui a coûté du temps une fois et en coûtera encore. Il se marque 🪤 et vit chez
+un seul propriétaire.
+
+| Le piège concerne | Il vit dans |
+|---|---|
+| un module | la fiche `docs/modules/<module>.md` |
+| une zone | la carte `<zone>/CODEMAP.md` |
+| rien d'identifiable, ou le projet entier | `docs/pieges/` si le projet en a un, sinon la section zones sensibles de `CODEMAP.md`, jamais les deux dans un même projet |
+
+`docs/pieges/README.md` tient le registre numéroté, un numéro par piège, monotone, jamais
+réutilisé, comme les ADR.
+
+```markdown
+| N° | Piège | Symptôme | Parade | Statut |
+|---|---|---|---|---|
+| P-003 | 🪤 le cache survit au redémarrage | données de la veille servies | purger `var/cache` avant le test | actif |
+```
+
+Un piège corrigé à la source passe en `résolu le <date>` dans le registre, il ne disparaît pas.
+Un piège laissé dans `TODOS.md` est perdu avec le bloc de reprise, l'audit le signale. `CLAUDE.md`
+n'est pas un propriétaire de piège, sauf règle de conduite qui vaut pour tout le projet.
 
 ---
 

@@ -7,7 +7,7 @@ formes, pas des textes à recopier : le contenu vient toujours du projet audité
 
 ## Le fichier racine
 
-Cible 50 lignes, plafond dur 100. Quatre sections, dans cet ordre et rien d'autre.
+Cible 100 lignes, alerte 150, blocage 200. Quatre sections, dans cet ordre et rien d'autre.
 
 ````markdown
 # <nom du projet>

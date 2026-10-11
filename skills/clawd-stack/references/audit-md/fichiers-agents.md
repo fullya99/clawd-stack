@@ -29,8 +29,9 @@ C'est ce que le script cherche en premier.
 3. **`name` avec un deux-points, ou qui commence par un tiret.** Rejeté au chargement.
 4. **Pas de `description`.** Ignoré, même silence.
 
-Un YAML qui ne parse pas tombe dans le même trou. Le cas le plus fréquent chez nous : une
-`description` non quotée qui contient `": "`. Elle casse le document YAML entier.
+Un YAML qui ne parse pas peut tomber dans le même trou. Le cas le plus fréquent chez nous : une
+`description` non quotée qui contient `": "`. Elle peut être refusée par un parseur strict, quote la
+valeur. Claude Code, lui, la charge quand même.
 
 ## Les clés, et ce qui arrive à une valeur fausse
 

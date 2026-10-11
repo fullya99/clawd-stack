@@ -30,10 +30,14 @@ Dans cet ordre. Le gabarit à remplir est dans `templates/plan.md`.
 9. **Conception.** Les changements, fichier par fichier.
 10. **Tâches.** Le format est fixé plus bas, il s'impose tel quel.
 11. **Découpage pour l'équipe.** Quels lots partent en parallèle, lesquels sont sériels, et
-    pourquoi. Deux lots qui touchent les mêmes fichiers ne partent jamais ensemble.
-12. **Hors périmètre et différé.**
-13. **Risques et pièges connus.**
-14. **Reprise.** De quoi redémarrer dans une session qui ne sait rien : où on en est, la
+    pourquoi, avec un profil `clawd-stack:<profil>` par lot. Deux lots qui touchent les mêmes
+    fichiers ne partent jamais ensemble.
+12. **Contre-revue.** Les constats `F-01`, `F-02` et suivants, classés Bloquant, Majeur, Modéré ou Validé, chacun
+    avec sa décision écrite, intégré (section citée) ou rejeté (raison). Un constat sans décision
+    interdit de rendre le plan.
+13. **Hors périmètre et différé.**
+14. **Risques et pièges connus.**
+15. **Reprise.** De quoi redémarrer dans une session qui ne sait rien : où on en est, la
     prochaine tâche non cochée, ce qui est déjà validé et ne se refait pas, la commande qui donne
     l'état du terrain (tests, lint, git status du projet). Elle se met à jour au fil de
     l'exécution, elle n'est pas figée à l'écriture du plan.

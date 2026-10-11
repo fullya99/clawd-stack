@@ -200,6 +200,9 @@ chemin_declare() { # <cle> <defaut>
 }
 DOCS_DIR="$(chemin_declare docs docs)"
 ARCH_DIR="$(chemin_declare archives archives)"
+# Repertoire des plans, cle optionnelle `plans:` (plans/ par defaut), sans ./ initial.
+PLANS_DIR="$(chemin_declare plans plans)"
+while [ "${PLANS_DIR#./}" != "$PLANS_DIR" ]; do PLANS_DIR="${PLANS_DIR#./}"; done
 LANGUE="$(conv_lire langue)"
 case "$LANGUE" in
   en*) RE_REPRISE='la reprise|resume|handoff|hand-off|restart'
@@ -780,7 +783,21 @@ else
 fi
 # Vestige d'une convention a quatre piliers. Le contenu a un proprietaire ailleurs
 # maintenant, le laisser en place cree deux sources de verite.
-[ -f MEMORY.md ] && alerte "MEMORY.md present, la convention n'a plus de pilier memoire. Repartir son contenu : decisions vers docs/decisions/, pieges vers la fiche du module ou les zones sensibles du CODEMAP, preferences vers CLAUDE.md"
+# Un projet qui s'en sert volontairement le declare dans ecarts: (MEMORY.md=<justification>) :
+# l'alerte devient une information qui cite la justification.
+if [ -f MEMORY.md ]; then
+  ECART_MEMORY=""
+  case "$(conv_lire ecarts)" in
+    *MEMORY.md=*)
+      ECART_MEMORY="$(conv_lire ecarts | sed -e 's/^.*MEMORY\.md=//' -e 's/,[[:space:]]*[A-Za-z][A-Za-z0-9._-]*=.*$//' -e 's/[[:space:]]*$//')"
+      ;;
+  esac
+  if [ -n "$ECART_MEMORY" ]; then
+    info "MEMORY.md commite a la racine, ecart declare dans ecarts: $ECART_MEMORY"
+  else
+    alerte "MEMORY.md present, la convention n'a plus de pilier memoire. Declarer l'ecart dans la ligne ecarts: du bloc (MEMORY.md=<justification>), ou drainer le fichier : decisions vers docs/decisions/, pieges vers la fiche du module ou les zones sensibles du CODEMAP, preferences vers CLAUDE.md"
+  fi
+fi
 if [ -z "$DOCS_DIR" ]; then
   info "le bloc declare docs: aucune, pas de fiches dans ce projet"
 elif [ -d "$DOCS_DIR" ]; then
@@ -1647,7 +1664,7 @@ fm_valeur() { # <fichier> <cle>
 # Plans executes. La regle d'un plan « termine » est celle de ctx-rotation.sh --plans, on
 # l'appelle en simulation au lieu de la recopier. Un plan fini qui garde des cases ouvertes
 # ou depasse 300 lignes n'a pas ete compresse.
-if [ -d plans ] && [ -f "$DIR_SCRIPTS/ctx-rotation.sh" ]; then
+if [ -n "$PLANS_DIR" ] && [ -d "$PLANS_DIR" ] && [ -f "$DIR_SCRIPTS/ctx-rotation.sh" ]; then
   sortie_plans="$(bash "$DIR_SCRIPTS/ctx-rotation.sh" --plans --dry-run --root "$ROOT" 2>/dev/null || true)"
   nbp=0; mauvais=0
   while IFS= read -r l; do
@@ -1830,7 +1847,8 @@ while IFS= read -r l; do
   [ -n "$l" ] || continue
   f="${l%:*}"; f="${f#./}"; c="${l##*:}"
   case "$f" in
-    CHANGELOG.md|plans/*) ;;
+    CHANGELOG.md) ;;
+    "$PLANS_DIR"/*) ;;
     TODOS.md) P_TODOS=$((P_TODOS + c)) ;;
     CLAUDE.md) P_CLAUDE=$((P_CLAUDE + c)) ;;
     CODEMAP.md) P_RACINE=$((P_RACINE + c)) ;;

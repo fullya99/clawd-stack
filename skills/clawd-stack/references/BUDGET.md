@@ -109,7 +109,7 @@ propriétaire, classe avant de retirer.
 | Ce que la phrase est | Où elle va |
 |---|---|
 | un événement, quelque chose qui a été fait | déjà au CHANGELOG, on la retire |
-| un piège, une contrainte | fiche du module, ou CODEMAP de la zone, ou zones sensibles racine si aucune zone |
+| un piège, une contrainte | fiche du module, ou CODEMAP de la zone, ou, sans module ni zone, `docs/pieges/` si le projet en a un, sinon la section zones sensibles de `CODEMAP.md`, jamais les deux dans un même projet |
 | une tâche | la liste de TODOS, avec son ancrage |
 | une décision et son pourquoi | ADR |
 | une piste écartée et pourquoi | l'ADR de la décision, ou les pièges de la fiche |

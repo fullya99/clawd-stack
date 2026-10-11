@@ -31,6 +31,7 @@ ecarts: MEMORY.md=pilier assumé, voir docs/decisions/ADR-0002
 | `piliers` | `CODEMAP.md, TODOS.md, CHANGELOG.md` | Les trois piliers. |
 | `docs` | `docs/` | Répertoire des fiches. |
 | `archives` | `archives/` | Répertoire des archives. |
+| `plans` | `plans/` | Répertoire des plans. `plans: docs/plans/` pour un dépôt qui les range ailleurs. Sert à `ctx-rotation.sh --plans` et au contrôle des plans exécutés de l'audit. |
 | `langue` | `fr` | Langue de la prose. |
 | `journal` | essaie les trois | `date-titre` (`## AAAA-MM-JJ`), `keep-a-changelog` (`## [x] - AAAA-MM-JJ`) ou `crochets` (`[AAAA-MM-JJ] [TYPE]`). |
 | `seuils` | ceux de `BUDGET.md` | `fichier=lignes`, un par fichier à relever. |

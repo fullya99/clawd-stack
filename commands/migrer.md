@@ -1,8 +1,8 @@
 ---
 description: Remet une ancienne convention de contexte à jour.
-argument-hint: [chemin du projet, optionnel]
+argument-hint: [racine du projet, vide = .]
 ---
 
-Cible : $ARGUMENTS
+Racine cible : $ARGUMENTS
 
 Mode **MIGRER** du skill `clawd-stack`. Charge le skill et suis sa table des modes.

@@ -33,7 +33,7 @@ que les autres surfaces portent déjà. Chaque savoir a donc un propriétaire un
 | Décision et son pourquoi | `docs/decisions/ADR-NNNN-*.md` |
 | Piège d'un module | La fiche du module, ou la carte de sa zone `<zone>/CODEMAP.md` |
 | Une piste écartée et pourquoi | L'ADR de la décision, ou les pièges de la fiche |
-| Piège sans module identifiable et sans zone | `CODEMAP.md`, section zones sensibles |
+| Piège sans module identifiable et sans zone | `docs/pieges/` si le projet en a un, sinon la section zones sensibles de `CODEMAP.md`, jamais les deux dans un même projet |
 | Préférence durable de l'utilisateur | `CLAUDE.md` |
 | Contrainte d'environnement, accès, outil disponible | `CODEMAP.md`, section dépendances |
 | Fait externe daté et périssable | `docs/veille/`, ou une entrée de `CHANGELOG.md` |
@@ -44,7 +44,8 @@ sais pas répondre, c'est presque toujours qu'elle n'a pas besoin d'être écrit
 Attention à un homonyme. Claude Code tient sa propre mémoire automatique dans un fichier nommé
 `MEMORY.md`, sous `~/.claude/projects/<projet>/memory/`. Il est local à la machine, il ne survit
 ni à un clone ni à un changement de poste, et il ne fait pas partie de cette convention. Ne le
-commite pas, ne recopie rien depuis ou vers lui. Le dépôt fait autorité.
+commite pas. La clôture le draine vers les propriétaires (voir `MEMOIRE-AUTO.md`), et rien ne
+s'écrit du dépôt vers lui. Le dépôt fait autorité.
 
 ---
 

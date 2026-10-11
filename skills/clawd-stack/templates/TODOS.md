@@ -19,6 +19,8 @@
 
 **À savoir avant de toucher** : <état instable, travail à moitié appliqué, piège du moment>
 
+**Vérifier le terrain** : `git log --oneline -10 && git status -s` <remplacer par la commande qui prouve l'état annoncé ci-dessus : tests, build ou script de contrôle>
+
 ---
 
 <!-- Pas de section « ce que cette session a produit », c'est du CHANGELOG. Pas de case cochée,

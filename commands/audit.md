@@ -3,6 +3,6 @@ description: Audite CLAUDE.md et AGENTS.md contre le code et raccourcit ce qui p
 argument-hint: [fichier ou dossier, vide = le dépôt]
 ---
 
-Cible : $ARGUMENTS
+À auditer en priorité : $ARGUMENTS
 
 Mode **AUDIT** du skill `clawd-stack`. Charge le skill et suis sa table des modes.

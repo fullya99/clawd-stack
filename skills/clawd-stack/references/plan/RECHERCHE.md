@@ -9,29 +9,21 @@ hors sujet.
 Une lib externe, l'API d'un fournisseur, une version récente, un comportement susceptible d'avoir
 bougé, un choix technologique à trancher : recherche.
 
-## La cascade des serveurs
+## L'ordre des sources
 
-| Besoin | Où chercher | Pourquoi |
-|---|---|---|
-| Version de lib, API précise | Context7, `resolve-library-id` puis `query-docs` | doc versionnée, évite l'API hallucinée |
-| Doc Microsoft ou Azure | ms-learn, `microsoft_docs_search` puis `microsoft_docs_fetch` | source de vérité, ne pas chercher ailleurs |
-| Doc Cloudflare | cf-docs | n'indexe que ça, mais bien |
-| Fait daté, actualité, pages à lire en entier | Firecrawl, `firecrawl_search`, `firecrawl_map` pour explorer un site inconnu | rend le contenu propre, pas juste des extraits |
-| État de l'art, similarité, papiers | Exa, `web_search_exa` puis `web_fetch_exa` | cherche par le sens, pas par mots-clés |
-| Recherche généraliste, fraîcheur | Brave | index propre, filtres pays langue fraîcheur |
-
-Ces outils arrivent via un connecteur MCP, souvent différé au démarrage de la session. Il faut le
-charger avec `ToolSearch` avant de tenter un appel, sinon l'outil paraît absent alors qu'il ne fait
-qu'attendre son chargement. Le nom exact d'un connecteur change d'une machine à l'autre, donc pars
-de la forme `mcp__<connecteur>__<serveur>_<outil>` et retrouve le nom réel avec `ToolSearch`, ne le
-code jamais en dur.
+1. La documentation officielle de l'outil ou du service, à la version visée. C'est la source de
+   vérité et elle évite l'API inventée.
+2. La recherche web native de la plateforme, pour les faits datés, les retours de terrain et les
+   pages à lire en entier.
+3. Les connecteurs MCP de recherche, s'il y en a dans la session. Ils sont parfois différés au
+   démarrage : charge-les avec `ToolSearch` avant de conclure qu'ils manquent, et retrouve leur
+   nom réel par cette recherche, ne le code jamais en dur.
 
 ## La dégradation
 
-Aucun de ces outils n'est un prérequis. S'ils sont absents ou que `ToolSearch` ne remonte rien, la
-recherche web native fait le travail, moins bien mais elle le fait, et le plan note la
-dégradation. Un skill qui exige un connecteur ne s'installe nulle part ailleurs que sur la machine
-où il a été conçu.
+Aucun connecteur n'est un prérequis. Absents, ou invisibles au sous-agent qui n'hérite pas des
+outils du parent, la recherche native fait le travail, moins bien, et le sous-agent le note dans son
+rapport. Le plan écrit « recherche native » dans ce cas.
 
 ## Le découpage en axes
 

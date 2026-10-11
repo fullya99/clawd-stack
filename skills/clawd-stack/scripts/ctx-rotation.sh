@@ -16,7 +16,8 @@
 #             donc les plus recentes, le journal etant range du plus recent au plus ancien.
 # --plafond : lignes maximum d'un fichier d'archive, 1500 par defaut. Un mois qui
 #             depasse se coupe en AAAA-MM-2.md, AAAA-MM-3.md, chacun indexe.
-# --plans   : au lieu du journal, traite les plans de plans/*.md.
+# --plans   : au lieu du journal, traite les plans du repertoire declare par `plans:` dans le
+#             bloc (plans/ par defaut), soit <plans>/*.md.
 # --dry-run : annonce ce qui bougerait, n'ecrit rien.
 #
 # Formats de journal, ceux de la convention. Le bloc contexte:convention les declare par
@@ -32,7 +33,7 @@
 # Plan execute, pour --plans. Un plan l'est quand l'une de ces deux marques existe :
 #   - une des 30 premieres lignes du plan porte `Statut : termine` (ou execute, clos,
 #     done) ou la banniere `PLAN EXECUTE`, sans negation (non, pas, en cours, partiel)
-#   - une ligne de TODOS.md cite `plans/<nom>.md` avec termine, execute, clos, done ou
+#   - une ligne de TODOS.md cite `<plans>/<nom>.md` avec termine, execute, clos, done ou
 #     [x], et sans case `[ ]` ouverte
 # Un plan execute de plus de 20 lignes devient un resume de 20 lignes au plus : titre,
 # objectif, registre des ecarts (un titre par ecart), commits. Le texte integral part
@@ -95,6 +96,13 @@ BT="$(printf '\140')"
 
 ARCH="$(conv_lire archives | sed 's|/*$||')"
 [ -n "$ARCH" ] || ARCH="archives"
+
+# Repertoire des plans, cle `plans:` du bloc. Premier mot, sans ./ initial ni / final.
+PLANS_DIR="$(conv_lire plans)"
+PLANS_DIR="${PLANS_DIR%%[[:space:],]*}"
+while [ "${PLANS_DIR#./}" != "$PLANS_DIR" ]; do PLANS_DIR="${PLANS_DIR#./}"; done
+while [ "${PLANS_DIR%/}" != "$PLANS_DIR" ]; do PLANS_DIR="${PLANS_DIR%/}"; done
+[ -n "$PLANS_DIR" ] || PLANS_DIR="plans"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -278,8 +286,8 @@ plan_resume() { # <fichier> <sortie> <cases ouvertes>
 plans_main() {
   local p raison nb ouvertes nom dest fini=0 echec=0 sortie code avert
   echo "Plans executes de $ROOT"
-  if [ ! -d plans ]; then
-    echo "  pas de repertoire plans/, rien a faire."
+  if [ ! -d "$PLANS_DIR" ]; then
+    echo "  pas de repertoire $PLANS_DIR/, rien a faire."
     return 0
   fi
   [ "$DRY" -eq 1 ] && echo "  mode simulation, rien ne sera ecrit"
@@ -332,7 +340,7 @@ plans_main() {
       fini=$((fini + 1))
     fi
   done <<FIN
-$(find plans -maxdepth 1 -type f -name '*.md' | LC_ALL=C sort)
+$(find "$PLANS_DIR" -maxdepth 1 -type f -name '*.md' | LC_ALL=C sort)
 FIN
   echo
   if [ "$DRY" -eq 1 ]; then

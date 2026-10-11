@@ -1,6 +1,6 @@
 # Critères de classement
 
-Chargé en phase 3, quand un bloc résiste au tableau du `SKILL.md`. Les quatre étiquettes sont
+Chargé en phase 3, quand un bloc résiste au tableau de classement de la phase 3. Les quatre étiquettes sont
 exclusives : un bloc en reçoit une, jamais deux.
 
 ## Le test, dans l'ordre

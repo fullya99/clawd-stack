@@ -20,24 +20,26 @@ cadratin, aucun point-virgule, langue de la prose du projet.
 - Trois piliers à la racine : `CODEMAP.md` (où), `TODOS.md` (maintenant), `CHANGELOG.md` (ce qui a changé).
 - `CLAUDE.md` porte ce qui est vrai tout le temps, court, sans état ni récit.
 - `docs/` ne contient que du vrai. `archives/` absorbe le reste, avec un en-tête, et ne se lit jamais comme source de vérité.
-- Chaque surface tient dans son budget, ce qui déborde descend d'un étage.
-- Le bloc `contexte:convention`, dans `CODEMAP.md`, déclare les chemins réels et le profil du projet.
-- Une phrase a un seul propriétaire. Devant chaque ligne, demande : qui est propriétaire de cette phrase ?
+- Le bloc `contexte:convention` (`version: 5`), dans `CODEMAP.md`, déclare les chemins réels, le profil et les seuils.
+- Devant chaque ligne, demande : qui est propriétaire de cette phrase ?
 
 ## Choisir le mode
 
-La commande décide. Sans commande, l'intention décide.
+Chez Claude Code, la commande décide. Sans commande, l'intention décide. Lis le fichier du mode, lui seul.
 
-| Mode | Commande | Intention | Suivre |
+| Mode | Commande | Intention | Lire |
 |---|---|---|---|
-| init | `/clawd-stack:init` | installer la convention, le kit manque | `references/MODE-CLOTURE.md`, section Mode INIT |
-| cloture | `/clawd-stack:cloture` | fin de session, avant de clear, la doc gonfle | `references/MODE-CLOTURE.md`, section Mode CLÔTURE |
-| relance | `/clawd-stack:relance` | début de session, où on en était | `references/MODE-CLOTURE.md`, section Mode REPRISE |
+| init | `/clawd-stack:init` | installer la convention, le kit manque | `references/MODE-INIT.md` |
+| cloture | `/clawd-stack:cloture` | fin de session, avant un redémarrage de contexte, la doc gonfle | `references/MODE-CLOTURE.md` |
+| relance | `/clawd-stack:relance` | début de session, où on en était, prompt de redémarrage | `references/MODE-RELANCE.md` |
 | planifier | `/clawd-stack:planifier` | faire un plan, cadrer une idée | `references/MODE-PLANIFIER.md` |
 | audit | `/clawd-stack:audit` | CLAUDE.md ou AGENTS.md trop long ou faux | `references/MODE-AUDIT.md` |
 | migrer | `/clawd-stack:migrer` | remettre une ancienne convention à jour | `references/MODE-MIGRER.md` |
 
-Ce skill ne sert pas à rédiger ou corriger un texte, c'est `style-redaction`.
+Le prompt de redémarrage générique se demande par le mode relance (`/clawd-stack:relance prompt`).
+
+Pas ce skill : rédiger ou corriger un texte, c'est `style-redaction`. Ajouter une fonction ou
+corriger un bug ne demande aucun mode. Un `CLAUDE.md` à réécrire de zéro sans audit passe par `references/BUDGET.md`.
 
 ## Résoudre `$SKILL`, une fois par session
 
@@ -46,7 +48,7 @@ Les scripts vivent dans le skill, pas dans le projet. Résous le chemin avant le
 ```bash
 ANCETRES="$(d="$PWD"; while [ "$d" != "/" ]; do echo "$d/.agents/skills/clawd-stack"; d="$(dirname "$d")"; done)"
 
-SKILL="$(for d in "$CLAUDE_PLUGIN_ROOT/skills/clawd-stack" \
+SKILL="$(for d in "${CLAUDE_PLUGIN_ROOT}/skills/clawd-stack" \
   ".claude/skills/clawd-stack" $ANCETRES \
   "$HOME/.claude/skills/clawd-stack" \
   "$HOME/.codex/skills/clawd-stack" "$HOME/.agents/skills/clawd-stack" \
@@ -57,27 +59,44 @@ done)"
 [ -n "$SKILL" ] || echo "skill introuvable, fais les etapes a la main sans le script"
 ```
 
-L'ordre est voulu, le pourquoi est dans `references/RESOLUTION.md`.
+Observable : `$SKILL` pointe un dossier qui contient `scripts/ctx-audit.sh`. Le pourquoi de l'ordre est dans `references/RESOLUTION.md`.
+
+## Témoin de clôture
+
+En fin de clôture, après le commit, une ligne. Hors Claude Code la variable est vide, le script sort sans écrire de témoin :
+
+```bash
+bash "$SKILL/scripts/ctx-demarrage.sh" --ecrire-temoin --donnees "${CLAUDE_PLUGIN_DATA}"
+```
+
+## Orchestrer
+
+La session principale cadre, arbitre et valide. Tout ce qui se délègue part au profil le moins cher qui tient
+son critère de fin : `clawd-stack:explorateur`, `controleur`, `executant`, `developpeur`, `chercheur`, `expert`,
+`relecteur`. Table, critères et consignes dans `references/DELEGATION.md`.
 
 ## Invariants
 
-- Aucune suppression silencieuse, l'obsolète part dans `archives/` avec sa raison.
-- Aucune affirmation connue fausse laissée pour plus tard, aucune doc écrite depuis une supposition.
-- Aucun `archives/` lu en reprise, toute fouille passe par `ctx-archeo.sh`.
-- Aucun travail en cours sans tâche écrite avant un redémarrage à froid.
-- Aucun fichier au-dessus de son seuil de blocage à la fin d'une clôture.
-- Aucun commit ni push non demandé, aucun secret dans un fichier tracké.
-- Rien ne s'écrit avant le oui de l'opérateur en planification et en audit.
-- Aucun texte qui sent le généré.
+- Rien de vrai ne se perd. Ce qui sort d'une surface part dans `archives/` avec sa raison, jamais en suppression silencieuse.
+- Aucun commit ni push sans l'opérateur, aucun secret dans un fichier tracké.
+- `archives/` ne se lit que par `ctx-archeo.sh`.
+- Hub MCP accélère, il n'est jamais un prérequis.
+- Aucune doc écrite depuis une supposition, aucune affirmation connue fausse laissée pour plus tard.
+- La langue suit `style-redaction`, sinon celle déclarée par le bloc `contexte:convention`.
 
 ## Références
 
 | Fichier | Quand le lire |
 |---|---|
-| `references/MODE-CLOTURE.md` | modes init, cloture et relance |
+| `references/MODE-INIT.md` | mode init |
+| `references/MODE-CLOTURE.md` | mode cloture |
+| `references/MODE-RELANCE.md` | mode relance, prompt de redémarrage |
 | `references/MODE-PLANIFIER.md` | mode planifier |
 | `references/MODE-AUDIT.md` | mode audit |
 | `references/MODE-MIGRER.md` | mode migrer, projet qui a déjà une convention |
+| `references/DELEGATION.md` | déléguer à un profil d'agent |
+| `references/MULTI-DEPOTS.md` | parent à sous-modules, plusieurs dépôts |
+| `references/MEMOIRE-AUTO.md` | clôture chez Claude Code, drainer la mémoire automatique |
 | `references/CONVENTION.md` | spécification des trois piliers et propriétaire de chaque savoir |
 | `references/CONFIG-PROJET.md` | chaque clé du bloc `contexte:convention`, défaut et exemple |
 | `references/BUDGET.md` | seuils, geste par fichier qui déborde, `CLAUDE.md` sans audit |
@@ -96,6 +115,21 @@ L'ordre est voulu, le pourquoi est dans `references/RESOLUTION.md`.
 | `references/audit-md/anti-patterns.md` | justifier une suppression |
 | `references/audit-md/modeles.md` | gabarit de fichier racine et de fiche |
 | `references/audit-md/fichiers-agents.md` | le dépôt déclare des sous-agents |
-| `templates/` | gabarits des piliers, zones, fiches, ADR et du plan |
-| `scripts/ctx-*.sh` | init, audit, rotation, archivage, archéologie des archives |
-| `scripts/verif-refs.sh`, `scripts/verif-agents.sh` | mode audit, phase 2 |
+| `templates/` | gabarits des piliers, zones, ADR et du plan |
+
+## Scripts
+
+Tous s'appellent par `bash "$SKILL/scripts/<nom>"`.
+
+| Script | Rôle |
+|---|---|
+| `ctx-init.sh` | détecte le terrain, crée ce qui manque sans rien écraser |
+| `ctx-audit.sh` | mesure les surfaces et contrôle la convention |
+| `ctx-rotation.sh` | fait tourner les journaux |
+| `ctx-archive.sh` | déplace un fichier vers `archives/` avec son en-tête |
+| `ctx-archeo.sh` | seule porte de lecture de `archives/` |
+| `ctx-migrer.sh` | simule puis applique le passage en version 5 |
+| `ctx-verite.sh` | confronte la doc au code |
+| `ctx-demarrage.sh` | témoin de reprise, appelé par le hook de démarrage |
+| `ctx-commun.sh` | fonctions partagées, ne s'appelle pas seul |
+| `verif-refs.sh`, `verif-agents.sh` | références mortes, déclarations d'agents |

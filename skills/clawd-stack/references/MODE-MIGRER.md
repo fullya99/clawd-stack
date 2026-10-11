@@ -13,18 +13,21 @@ ton direct, aucun tiret cadratin, aucun point-virgule.
 |---|---|
 | un bloc `contexte:convention` en version 3 ou 4 | ce mode |
 | trois piliers sans bloc (version 2), ou quatre piliers avec `MEMORY.md` (version 1) | ce mode |
-| un bloc en version 5 | rien, le script le dit et sort |
+| un bloc en version 5 | le bloc n'est pas réécrit, mais le script rejoue ses gestes sans risque (lignes d'orchestration, anciennes commandes, listes à trier) et dit « rien à faire » s'il n'a rien à poser |
 | aucun pilier (version 0) | `scripts/ctx-init.sh`, le mode INIT, pas celui-ci |
+
+Après une mise à jour du plugin, repasse `migrer` sur un projet déjà en version 5 : les gestes ajoutés depuis lui arrivent, le bloc reste tel quel.
 
 ## Les étapes
 
 1. **Une branche.** `git switch -c migration-clawd-stack` sur un arbre propre. Le script ne crée
    ni branche ni commit.
-2. **La simulation.** `bash "$SKILL/scripts/ctx-migrer.sh" --root .` n'écrit rien. Résous `$SKILL`
+2. **La simulation.** `bash "$SKILL/scripts/ctx-migrer.sh" --root <racine>` n'écrit rien. `<racine>` est l'argument de
+   la commande s'il est donné, sinon `.`. Résous `$SKILL`
    comme dans `SKILL.md`.
 3. **La revue avec l'opérateur.** Lis le rapport section par section, voir plus bas. Chaque point
    qui demande un jugement est à lui.
-4. **L'application.** `bash "$SKILL/scripts/ctx-migrer.sh" --root . --appliquer` pose le bloc en
+4. **L'application.** `bash "$SKILL/scripts/ctx-migrer.sh" --root <racine> --appliquer` pose le bloc en
    version 5 et réécrit les commandes citées. Un second passage ne change rien.
 5. **Les décisions de la revue.** Applique à la main ce que l'opérateur a tranché.
 6. **Une clôture complète**, mode CLÔTURE, jusqu'à `ctx-audit.sh --strict` sans blocage. Elle

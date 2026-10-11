@@ -265,6 +265,14 @@ echo "Regles projet"
 if [ -f "$ROOT/$REGLES" ]; then
   if grep -q "Convention de contexte" "$ROOT/$REGLES" 2>/dev/null; then
     printf '  = %-24s contient deja la convention\n' "$REGLES"
+    if ! grep -q "clawd-stack:orchestration" "$ROOT/$REGLES" 2>/dev/null \
+       && grep -q "clawd-stack:orchestration" "$TPL/CLAUDE-snippet.md" 2>/dev/null; then
+      printf '  ~ %-24s trois lignes d orchestration ajoutees a la fin\n' "$REGLES"
+      if [ "$DRY" -eq 0 ]; then
+        printf '\n' >> "$ROOT/$REGLES"
+        sed -n '/clawd-stack:orchestration/,$p' "$TPL/CLAUDE-snippet.md" >> "$ROOT/$REGLES"
+      fi
+    fi
   elif [ "$WITH_CLAUDE" -eq 1 ]; then
     printf '  ~ %-24s bloc de convention ajoute a la fin\n' "$REGLES"
     if [ "$DRY" -eq 0 ]; then

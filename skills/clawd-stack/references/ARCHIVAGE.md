@@ -64,6 +64,9 @@ bash "$SKILL/scripts/ctx-archive.sh" --verifier <chemin>
 bash "$SKILL/scripts/ctx-archive.sh" <chemin> --raison "..." --remplace-par "..."
 ```
 
+`--dry-run` annonce sans écrire. `--force` passe outre un lien vivant, il ne se prend qu'en
+connaissance de cause.
+
 Le premier appel n'écrit rien, il classe les références entrantes et dit si un lien markdown
 vivant bloque l'archivage. Le second fait tout, dans l'ordre.
 
@@ -80,6 +83,11 @@ vivant bloque l'archivage. Le second fait tout, dans l'ordre.
 
 Cette dernière étape est la porte qui manquait. Le geste à la main faisait quatre étapes, et la
 quatrième, la ligne d'index, sautait le plus souvent, sans que rien ne le signale.
+
+Variante `--resume <fichier>` : le fichier garde sa place sous forme de résumé, le texte intégral
+part en archive. `<fichier>` est posé à l'ancien chemin, et `{{ARCHIVE}}` y devient le chemin de
+l'archive. Les références entrantes restent valides, elles ne bloquent donc pas, et la
+vérification finale contrôle que le résumé est en place. C'est l'appel de `ctx-rotation.sh --plans`.
 
 Le script refuse d'archiver un pilier (`CODEMAP.md`, `TODOS.md`, `CHANGELOG.md`, `CLAUDE.md`) et
 un index (`docs/README.md`, `archives/README.md`). Une section fausse d'un pilier se corrige sur
@@ -176,14 +184,15 @@ exception à la règle du `git mv` de cette page.
 
 ### Les plans exécutés
 
-`ctx-rotation.sh --plans` traite `plans/*.md`. Un plan est exécuté quand l'une de ces marques
+`ctx-rotation.sh --plans [--root <chemin>] [--dry-run]` traite `plans/*.md`. Un plan est exécuté quand l'une de ces marques
 existe : une ligne `Statut : terminé` (ou la bannière `PLAN EXÉCUTÉ`) dans ses 30 premières
 lignes, sans négation, ou une ligne de `TODOS.md` qui cite `plans/<nom>.md` avec « terminé »,
 « exécuté » ou une case cochée. Un plan exécuté de plus de 20 lignes devient un résumé de 20
 lignes au plus à son chemin d'origine : titre, objectif, registre des écarts, commits. Le texte
 intégral part dans `archives/AAAA-MM/plans/<nom>.md` par `ctx-archive.sh --resume`, avec son
 en-tête et sa ligne d'index. Le chemin ne change pas, les références entrantes restent valides.
-Le texte intégral garde tout, y compris les cases restées ouvertes. `--dry-run` s'y combine.
+Un plan déjà résumé (marqueur `plan-resume`) ou de 20 lignes ou moins n'est pas touché. Le texte
+intégral garde tout, y compris les cases restées ouvertes.
 
 ---
 

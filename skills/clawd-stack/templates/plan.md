@@ -94,8 +94,22 @@ Ou : cette tâche n'a pas de surface externe, aucune recherche menée.
 <!-- Quels lots partent en parallèle. Lesquels sont sériels, et pourquoi. Deux lots qui touchent
      les mêmes fichiers ne partent jamais ensemble. -->
 
-- Lot A (<tâches>) : parallèle avec <lot ou rien>
-- Lot B (<tâches>) : après <lot>, parce que <raison>
+<!-- Un profil `clawd-stack:<profil>` par lot : explorateur, controleur, executant, developpeur,
+     chercheur, expert ou relecteur. Le plus bas qui tient le critère de fin du lot. -->
+
+- Lot A (<tâches>), profil <profil> : parallèle avec <lot ou rien>
+- Lot B (<tâches>), profil <profil> : après <lot>, parce que <raison>
+
+## Contre-revue
+
+<!-- Un relecteur en contexte neuf challenge les hypothèses du plan. Une décision écrite par constat,
+     sans quoi le plan ne se rend pas. -->
+
+| Id | Niveau | Constat et source | Décision |
+|---|---|---|---|
+| F-01 | Bloquant, Majeur ou Modéré | <ce qui est faux, lien> | intégré (<section>) ou rejeté (<raison>) |
+
+Validé : <constats confirmés par une source primaire, en une ligne>
 
 ## Hors périmètre et différé
 

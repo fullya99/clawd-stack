@@ -12,7 +12,9 @@
 #   bash ctx-migrer.sh [--root <chemin>] --appliquer
 #
 # Versions de depart : 0 rien, 1 quatre piliers avec MEMORY.md racine, 2 trois piliers sans bloc,
-# 3 bloc sans taille:, 4 bloc avec taille:. Un bloc deja en version 5 : rien a faire.
+# 3 bloc sans taille:, 4 bloc avec taille:. Un bloc deja en version 5 n'est pas reecrit, mais les
+# gestes idempotents tournent quand meme (lignes d'orchestration, anciennes commandes, listes
+# a trier) : on repasse migrer apres une mise a jour du plugin. Sans effet : rien a faire.
 #
 set -euf
 
@@ -31,7 +33,7 @@ while [ $# -gt 0 ]; do
       ROOT="$2"; shift 2 ;;
     --appliquer) APPLIQUER=1; shift ;;
     --dry-run)   DRY_EXPLICITE=1; shift ;;
-    -h|--help)   sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)   sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Option inconnue : $1" >&2; exit 2 ;;
   esac
 done
@@ -203,29 +205,32 @@ echo "  mode              : $MODE_TXT"
 echo "  version de depart : $VERSION"
 echo "  version cible     : $CTX_VERSION"
 
-if [ "$VERSION" -ge "$CTX_VERSION" ]; then
-  echo
-  echo "Le bloc est deja en version $CTX_VERSION, rien a faire."
-  exit 0
-fi
+# Un bloc deja a la version cible n'est pas reecrit, mais le script ne sort plus : les gestes
+# idempotents ajoutes depuis la migration doivent atteindre les projets deja migres.
+V5=0
+if [ "$VERSION" -ge "$CTX_VERSION" ]; then V5=1; fi
 
 # Le travail se fait sur une branche, l'operateur merge. Un avertissement, pas un refus.
-if [ "$APPLIQUER" -eq 1 ] && git rev-parse --git-dir >/dev/null 2>&1; then
-  BRANCHE="$(git symbolic-ref --short -q HEAD 2>/dev/null || true)"
-  case "$BRANCHE" in
-    main|master) echo "  [!] branche $BRANCHE : le mode MIGRER travaille sur une branche a part." ;;
-  esac
-  if [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then
-    echo "  [!] des fichiers suivis sont deja modifies, le diff de la migration sera melange au leur."
+avertir_branche() {
+  if [ "$APPLIQUER" -eq 1 ] && git rev-parse --git-dir >/dev/null 2>&1; then
+    BRANCHE="$(git symbolic-ref --short -q HEAD 2>/dev/null || true)"
+    case "$BRANCHE" in
+      main|master) echo "  [!] branche $BRANCHE : le mode MIGRER travaille sur une branche a part." ;;
+    esac
+    if [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+      echo "  [!] des fichiers suivis sont deja modifies, le diff de la migration sera melange au leur."
+    fi
   fi
-fi
+  return 0
+}
+if [ "$V5" -eq 0 ]; then avertir_branche; fi
 
 # --- mesures ------------------------------------------------------------------
 # La taille et le profil sont ceux de ctx-init.sh, appele en simulation : une seule
 # regle de mesure pour les deux scripts.
 MESURE_TAILLE=""
 MESURE_PROFIL=""
-if [ -f "$SCRIPT_DIR/ctx-init.sh" ]; then
+if [ "$V5" -eq 0 ] && [ -f "$SCRIPT_DIR/ctx-init.sh" ]; then
   bash "$SCRIPT_DIR/ctx-init.sh" --root "$ROOT" --dry-run > "$TMP/init.out" 2>/dev/null || true
   MESURE_TAILLE="$(sed -n 's/^  taille  : \([a-z]*\),.*/\1/p' "$TMP/init.out" | head -n 1)"
   MESURE_PROFIL="$(sed -n 's/^  profil  : //p' "$TMP/init.out" | head -n 1)"
@@ -689,14 +694,15 @@ fi
 [ -z "$PILIERS_ABSENTS" ] || echo "  piliers absents  :$PILIERS_ABSENTS"
 if [ -n "$MESURE_TAILLE" ]; then echo "  taille mesuree   : $MESURE_TAILLE"; fi
 
-if [ "$VERSION" -eq 0 ] && [ -z "$PORTEUR" ]; then
+BLOC_ECRIT=0
+if [ "$V5" -eq 1 ]; then
+  echo "  bloc deja en version $CTX_VERSION, pas reecrit"
+elif [ "$VERSION" -eq 0 ] && [ -z "$PORTEUR" ]; then
   echo "  [!] aucune convention : le bloc n'est pas pose ici. ctx-init.sh installe le kit"
   echo "      et le bloc en version $CTX_VERSION, c'est le bon outil pour ce projet."
-  BLOC_ECRIT=0
 elif [ -z "$CIBLE_BLOC" ]; then
   echo "  [!] aucun fichier pour porter le bloc (ni CODEMAP.md, ni CLAUDE.md, ni AGENTS.md)."
   echo "      ctx-init.sh cree le kit, relance la migration ensuite."
-  BLOC_ECRIT=0
 else
   if [ -z "$PORTEUR" ] && [ "$CIBLE_BLOC" != "CODEMAP.md" ]; then
     echo "  [!] CODEMAP.md absent : le bloc est pose dans $CIBLE_BLOC. Quand CODEMAP.md sera cree,"
@@ -708,7 +714,7 @@ else
   printf '%s' "$NOTES"
 fi
 
-if [ -n "$CONV_TROUVEES" ]; then
+if [ "$V5" -eq 0 ] && [ -n "$CONV_TROUVEES" ]; then
   echo
   echo "Conventions existantes, declarees dans ecarts: et non dissoutes"
   printf '%s' "$CONV_TROUVEES"
@@ -755,7 +761,11 @@ if [ -n "$SCRIPTS_LOCAUX" ]; then
   echo "Script local qui fork l'audit, A RETIRER une fois ses seuils reportes"
   printf '%s' "$SCRIPTS_LOCAUX" | sed 's/^/  /'
   if [ -n "$SEUILS_LUS" ]; then
-    echo "  seuils lus :"
+    if [ "$V5" -eq 1 ]; then
+      echo "  seuils lus, absents du bloc, a reporter a la main :"
+    else
+      echo "  seuils lus :"
+    fi
     printf '%s' "$SEUILS_LUS" | sed 's/^/    /'
   fi
   if [ -n "$SEUILS_SANS_FICHIER" ]; then
@@ -763,7 +773,11 @@ if [ -n "$SCRIPTS_LOCAUX" ]; then
     printf '%s' "$SEUILS_SANS_FICHIER" | sed 's/^/    /'
   fi
   if [ -z "$SEUILS_LUS" ] && [ -z "$SEUILS_SANS_FICHIER" ]; then
-    echo "  aucun seuil lisible simplement : a reprendre a la main."
+    if [ "$V5" -eq 1 ]; then
+      echo "  aucun seuil a reporter (deja dans le bloc, ou aucun lisible simplement)."
+    else
+      echo "  aucun seuil lisible simplement : a reprendre a la main."
+    fi
   fi
   echo "  Le reste de sa logique (controles propres au projet) est a relire a la main."
 fi
@@ -789,10 +803,69 @@ if [ -n "$AGENTS_LOCAUX" ]; then
   echo "  une ligne comme : ecarts: agents=<noms>: profils locaux assumes (justification a completer)"
 fi
 
+# Les trois lignes d'orchestration du gabarit, posees dans le CLAUDE.md du projet (AGENTS.md
+# a defaut). Le marqueur clawd-stack:orchestration rend le geste idempotent.
+TPL_SNIPPET="$SCRIPT_DIR/../templates/CLAUDE-snippet.md"
+CIBLE_ORCH=""
+for f in CLAUDE.md AGENTS.md; do
+  if [ -f "$f" ]; then CIBLE_ORCH="$f"; break; fi
+done
+ORCH_A_POSER=0
+if [ ! -f "$TPL_SNIPPET" ] || ! grep -q "clawd-stack:orchestration" "$TPL_SNIPPET"; then
+  [ "$V5" -eq 1 ] || { echo; echo "Orchestration"; echo "  gabarit sans bloc d'orchestration, rien a poser"; }
+elif [ "$V5" -eq 0 ] && [ "$BLOC_ECRIT" -ne 1 ]; then
+  echo; echo "Orchestration"; echo "  pas de migration ici, rien a poser"
+elif [ -z "$CIBLE_ORCH" ]; then
+  # Sur un bloc deja en version 5, un projet sans CLAUDE.md ni AGENTS.md est l'affaire de l'audit.
+  [ "$V5" -eq 1 ] || { echo; echo "Orchestration"; echo "  [!] ni CLAUDE.md ni AGENTS.md : trois lignes non posees, ctx-init.sh cree le fichier"; }
+elif grep -q "clawd-stack:orchestration" "$CIBLE_ORCH"; then
+  [ "$V5" -eq 1 ] || { echo; echo "Orchestration"; echo "  = $CIBLE_ORCH contient deja les lignes d'orchestration"; }
+else
+  ORCH_A_POSER=1
+  echo; echo "Orchestration"
+  echo "  trois lignes d'orchestration, $V_ECRIT a la fin de $CIBLE_ORCH"
+fi
+
 # ==============================================================================
 # Ecriture
 # ==============================================================================
-NB_ECRITS=0
+# Les fichiers touches, comptes une fois chacun, en simulation comme en application.
+A_ECRIRE=""
+marquer_ecrit() { # <fichier>
+  local m="${1#./}"
+  case "
+$A_ECRIRE" in *"
+$m
+"*) return 0 ;; esac
+  A_ECRIRE="${A_ECRIRE}${m}
+"
+  return 0
+}
+if [ "$BLOC_ECRIT" -eq 1 ]; then marquer_ecrit "$CIBLE_BLOC"; fi
+while IFS="$TAB" read -r f i; do
+  [ -n "$f" ] || continue
+  marquer_ecrit "$f"
+done <<FIN
+$FICHIERS_COMMANDES_CHANGES
+FIN
+if [ "$ORCH_A_POSER" -eq 1 ]; then marquer_ecrit "$CIBLE_ORCH"; fi
+NB_ECRITS="$(printf '%s' "$A_ECRIRE" | grep -c . || true)"
+
+NB_DECISIONS=0
+for liste in "$REGLES_GLOBS" "$REGLES_DEJA_PATHS" "$COPIES" "$SCRIPTS_LOCAUX" "$AGENTS_LOCAUX"; do
+  if [ -n "$liste" ]; then NB_DECISIONS=$((NB_DECISIONS + 1)); fi
+done
+if [ "$V5" -eq 0 ] && [ -n "$CONV_TROUVEES" ]; then NB_DECISIONS=$((NB_DECISIONS + 1)); fi
+
+# Un bloc deja a jour, aucun geste a faire, rien a trier : on le dit et on sort.
+if [ "$V5" -eq 1 ] && [ "$NB_ECRITS" -eq 0 ] && [ "$NB_DECISIONS" -eq 0 ]; then
+  echo
+  echo "Le bloc est deja en version $CTX_VERSION, rien a faire."
+  exit 0
+fi
+
+if [ "$V5" -eq 1 ] && [ "$NB_ECRITS" -gt 0 ]; then avertir_branche; fi
+
 if [ "$APPLIQUER" -eq 1 ]; then
   CMD_FAIT=""
   if [ "$BLOC_ECRIT" -eq 1 ]; then
@@ -814,31 +887,31 @@ FIN
       { cat "$TMP/bloc.new"; echo; cat "$BASE_BLOC"; } > "$TMP/porteur.new"
     fi
     remplacer "$TMP/porteur.new" "$CIBLE_BLOC"
-    NB_ECRITS=$((NB_ECRITS + 1))
   fi
   while IFS="$TAB" read -r f i; do
     [ -n "$f" ] || continue
     [ "$i" != "$CMD_FAIT" ] || continue
     remplacer "$TMP/cmd.$i" "$f"
-    NB_ECRITS=$((NB_ECRITS + 1))
   done <<FIN
 $FICHIERS_COMMANDES_CHANGES
 FIN
+  if [ "$ORCH_A_POSER" -eq 1 ]; then
+    { cat "$CIBLE_ORCH"; echo; sed -n '/clawd-stack:orchestration/,$p' "$TPL_SNIPPET"; } > "$TMP/orch.new"
+    remplacer "$TMP/orch.new" "$CIBLE_ORCH"
+  fi
 fi
-
-NB_DECISIONS=0
-for liste in "$REGLES_GLOBS" "$COPIES" "$SCRIPTS_LOCAUX" "$AGENTS_LOCAUX"; do
-  if [ -n "$liste" ]; then NB_DECISIONS=$((NB_DECISIONS + 1)); fi
-done
-if [ -n "$CONV_TROUVEES" ]; then NB_DECISIONS=$((NB_DECISIONS + 1)); fi
 
 echo
 if [ "$APPLIQUER" -eq 1 ]; then
   echo "Bilan : $NB_ECRITS fichier(s) ecrit(s), $NB_DECISIONS point(s) laisse(s) a l'operateur."
   echo "Rien n'est commite. Un second --appliquer ne change rien."
+elif [ "$V5" -eq 1 ] && [ "$NB_ECRITS" -eq 0 ]; then
+  echo "Bilan : aucune ecriture a faire, $NB_DECISIONS point(s) restent a l'operateur."
 else
   echo "Bilan : simulation, rien n'a ete ecrit. $NB_DECISIONS point(s) restent a l'operateur."
   echo "Relire ce rapport avec lui, puis relancer avec --appliquer."
 fi
-echo "Ensuite : une cloture complete du projet, puis la PR est ouverte par l'operateur."
+if [ "$V5" -eq 0 ]; then
+  echo "Ensuite : une cloture complete du projet, puis la PR est ouverte par l'operateur."
+fi
 exit 0

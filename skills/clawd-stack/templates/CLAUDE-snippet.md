@@ -20,12 +20,9 @@ la source de vérité, pas la conversation.
    `docs/decisions/` porte les choix déjà tranchés et leur pourquoi.
 
 **Ne jamais lire `archives/` en reprise.** C'est du contenu faux ou froid par construction, gardé
-pour l'historique. Pour y chercher quelque chose, une commande le fait sans charger les fichiers,
-et elle rend la provenance avec l'extrait :
-
-```bash
-bash "$SKILL/scripts/ctx-archeo.sh" <motif>   # jamais un grep nu, il rend la ligne sans son en-tête
-```
+pour l'historique. Pour y chercher quelque chose, passe par le skill `clawd-stack` : son mode relance
+résout le chemin du script de recherche, qui rend la provenance avec l'extrait sans charger les
+fichiers. Un grep nu rend la ligne sans son en-tête.
 
 **En fin de session, avant tout redémarrage à froid** : lancer `/clawd-stack:cloture`, ou simplement demander
 de ranger le projet. Ça resynchronise les 3 piliers, met à jour les fiches `docs/` des modules
@@ -47,3 +44,10 @@ budget.
 **Style de rédaction** : français, ton direct. Pas de tiret cadratin, pas de point-virgule, pas
 de tournure qui sent le texte généré. La règle complète est dans le skill `style-redaction`, à
 charger avant d'écrire un document.
+
+<!-- clawd-stack:orchestration -->
+## Orchestration
+
+- La session principale orchestre et garde le jugement : cadrage, arbitrage, décision irréversible, validation.
+- Chaque tâche part au profil `clawd-stack:<profil>` le moins cher qui tient son critère de fin.
+- Le détail est dans la référence `DELEGATION.md` du skill `clawd-stack`.

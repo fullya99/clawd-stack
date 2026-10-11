@@ -3,7 +3,8 @@
 ## 1. La forme
 
 Un seul bloc de texte copiable, produit dans le chat, jamais écrit dans un fichier. L'opérateur le
-colle dans une session neuve, sans résidu de l'exploration qui précède, `/clear` chez Claude Code.
+colle dans une session neuve, sans résidu de l'exploration qui précède. Chaque plateforme a sa façon d'en ouvrir une, chez
+Claude Code une nouvelle session ou `/clear`.
 
 ## 2. L'ordre des morceaux
 
@@ -46,9 +47,9 @@ Trois à cinq agents, pas plus. Au-delà, le pilote passe plus de temps à coord
   de vérification, ne code pas lui-même les gros lots pour garder son attention sur l'ordonnancement.
 - **Les implémenteurs.** Un par lot indépendant, chacun en contexte frais. La demande de fond est
   un exécutant capable et appliqué, dont le modèle se règle par le mécanisme propre à la
-  plateforme. Chez Claude Code, ça passe par le frontmatter d'un fichier d'agent de projet,
-  `model: claude-sonnet-5` et `effort: high`. Ailleurs, la même exigence se formule en clair dans
-  le prompt.
+  plateforme. Chez Claude Code, ça passe par un profil du plugin, `clawd-stack:developpeur` ou
+  `clawd-stack:expert` selon le lot, le plus bas qui tient le critère de fin. Ailleurs, la même
+  exigence se formule en clair dans le prompt.
 - **Le relecteur.** En contexte frais, il ne voit que le diff produit et les critères de la tâche
   concernée, jamais l'historique de la conversation qui l'a fait naître. Son mandat s'arrête à ce
   qui casse la correction du code ou une exigence écrite dans le plan. Le style et la préférence
@@ -74,7 +75,8 @@ la consigne « avant de conclure, vérifie que [critère] » se met à chaque é
 Un sous-agent ne renvoie que son résultat final, le pilote ne voit jamais son fil de travail. Le
 prompt demande donc à chaque implémenteur de terminer par un état court, trois lignes : ce qui
 est fait, ce qui reste, ce qui a surpris. Sans cette consigne le pilote enchaîne les lots à
-l'aveugle.
+l'aveugle. Il leur demande aussi de mettre à jour la section Reprise du plan et de cocher les
+étapes à la fin de leur lot.
 
 ## 9. Exemple
 
@@ -103,10 +105,10 @@ s'ajoute avec un défaut, elle ne remplace rien.
 
 <equipe>
 Toi, le pilote : tu séquences les deux lots ci-dessous et tu ouvres les portes.
-Implémenteur A : lot migration et modèle, model claude-sonnet-5, effort high.
-Implémenteur B : lot route et tests d'intégration, model claude-sonnet-5, effort high, démarre
+Implémenteur A : lot migration et modèle, profil clawd-stack:developpeur.
+Implémenteur B : lot route et tests d'intégration, profil clawd-stack:developpeur, démarre
 après le lot A puisqu'il consomme le champ qu'il ajoute.
-Relecteur : contexte frais, il voit uniquement le diff final et les critères de la tâche 2 du
+Relecteur : profil clawd-stack:relecteur, contexte frais, il voit uniquement le diff final et les critères de la tâche 2 du
 plan. Il ne remonte que ce qui romprait le filtre par défaut ou la migration.
 </equipe>
 

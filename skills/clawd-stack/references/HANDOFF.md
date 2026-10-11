@@ -24,7 +24,7 @@ La seule vérification qui vaut vraiment, c'est de te relire comme si tu ne sava
    ajoute-la maintenant.
 3. Ouvre `CODEMAP.md` et vérifie que les fichiers cités à l'étape 2 y figurent bien.
 4. Vérifie qu'un piège rencontré cette session est écrit quelque part, dans la fiche `docs/` du
-   module concerné ou dans les zones sensibles du CODEMAP. Sinon il sera re-découvert plus tard,
+   module concerné ou dans `docs/pieges/` ou les zones sensibles du `CODEMAP.md` (un seul des deux par projet, `docs/pieges/` s'il existe). Sinon il sera re-découvert plus tard,
    au prix des mêmes erreurs.
 5. Confronte `git status` et `git log -3` à ce que raconte le CHANGELOG.
 
@@ -104,7 +104,7 @@ et parfois du travail refait.
 
 ## Au retour, la reprise
 
-Ordre de lecture, c'est le mode REPRISE du skill.
+Ordre de lecture, c'est le mode RELANCE du skill.
 
 1. `CLAUDE.md`, les règles et les préférences durables.
 2. Lecture partielle, jamais un pilier entier :
