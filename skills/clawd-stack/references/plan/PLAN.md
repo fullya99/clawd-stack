@@ -30,7 +30,7 @@ Dans cet ordre. Le gabarit à remplir est dans `templates/plan.md`.
 9. **Conception.** Les changements, fichier par fichier.
 10. **Tâches.** Le format est fixé plus bas, il s'impose tel quel.
 11. **Découpage pour l'équipe.** Quels lots partent en parallèle, lesquels sont sériels, et
-    pourquoi, avec un profil `clawd-stack:<profil>` par lot. Deux lots qui touchent les mêmes
+    pourquoi, avec un rôle par lot, pris dans `references/DELEGATION.md`. Deux lots qui touchent les mêmes
     fichiers ne partent jamais ensemble.
 12. **Contre-revue.** Les constats `F-01`, `F-02` et suivants, classés Bloquant, Majeur, Modéré ou Validé, chacun
     avec sa décision écrite, intégré (section citée) ou rejeté (raison). Un constat sans décision

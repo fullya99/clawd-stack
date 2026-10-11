@@ -94,11 +94,11 @@ Ou : cette tâche n'a pas de surface externe, aucune recherche menée.
 <!-- Quels lots partent en parallèle. Lesquels sont sériels, et pourquoi. Deux lots qui touchent
      les mêmes fichiers ne partent jamais ensemble. -->
 
-<!-- Un profil `clawd-stack:<profil>` par lot : explorateur, controleur, executant, developpeur,
+<!-- Un rôle par lot, pris dans `references/DELEGATION.md` : explorateur, controleur, executant, developpeur,
      chercheur, expert ou relecteur. Le plus bas qui tient le critère de fin du lot. -->
 
-- Lot A (<tâches>), profil <profil> : parallèle avec <lot ou rien>
-- Lot B (<tâches>), profil <profil> : après <lot>, parce que <raison>
+- Lot A (<tâches>), rôle <rôle> : parallèle avec <lot ou rien>
+- Lot B (<tâches>), rôle <rôle> : après <lot>, parce que <raison>
 
 ## Contre-revue
 

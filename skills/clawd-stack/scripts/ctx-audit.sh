@@ -737,18 +737,18 @@ if [ -n "$CONCUR" ]; then
 fi
 
 # Version du bloc. Un bloc sans ligne `version:` ou en version ancienne vient d'un
-# skill plus vieux : /clawd-stack:migrer le remet d'aplomb. Sans bloc du tout, la
+# skill plus vieux : le mode migrer du skill le remet d'aplomb. Sans bloc du tout, la
 # section 1 le dit et ctx-init.sh le pose, il n'y a rien a migrer.
 case "$BLOC_V" in
   0) ;;
   ''|*[!0-9]*)
-    alerte "le bloc contexte:convention porte une version illisible ($BLOC_V). Lancer /clawd-stack:migrer" "$(conv_trouver)" ;;
+    alerte "le bloc contexte:convention porte une version illisible ($BLOC_V). Lancer le mode migrer du skill" "$(conv_trouver)" ;;
   *)
     if [ "$BLOC_V" -lt "$CTX_VERSION" ]; then
       if [ -z "$(conv_lire version)" ]; then
-        alerte "le bloc contexte:convention n'a pas de ligne version:, il vient d'une version ancienne du skill (la courante est la $CTX_VERSION). Lancer /clawd-stack:migrer" "$(conv_trouver)"
+        alerte "le bloc contexte:convention n'a pas de ligne version:, il vient d'une version ancienne du skill (la courante est la $CTX_VERSION). Lancer le mode migrer du skill" "$(conv_trouver)"
       else
-        alerte "le bloc contexte:convention est en version $BLOC_V, la courante est la $CTX_VERSION. Lancer /clawd-stack:migrer" "$(conv_trouver)"
+        alerte "le bloc contexte:convention est en version $BLOC_V, la courante est la $CTX_VERSION. Lancer le mode migrer du skill" "$(conv_trouver)"
       fi
     fi ;;
 esac

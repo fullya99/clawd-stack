@@ -798,7 +798,7 @@ if [ -n "$AGENTS_LOCAUX" ]; then
   echo
   echo "Profils d'agents locaux, PROPOSE, rien n'est supprime ni declare"
   printf '%s' "$AGENTS_LOCAUX" | sed 's/^/  /'
-  echo "  Au choix : les remplacer par les profils clawd-stack:<profil> (explorateur, controleur,"
+  echo "  Au choix : les remplacer par les profils d'agents du skill (explorateur, controleur,"
   echo "  executant, developpeur, chercheur, expert, relecteur), ou les declarer dans ecarts: avec"
   echo "  une ligne comme : ecarts: agents=<noms>: profils locaux assumes (justification a completer)"
 fi
