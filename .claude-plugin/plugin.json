@@ -1,7 +1,7 @@
 {
   "name": "clawd-stack",
   "description": "Une seule stack de contexte pour tous les projets. Convention à trois piliers, clôture et relance de session, plans sourcés, audit des fichiers d'instructions contre le code, migration des anciennes conventions.",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "author": {
     "name": "fullya99"
   }
