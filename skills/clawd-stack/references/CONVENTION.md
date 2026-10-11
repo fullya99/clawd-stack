@@ -56,8 +56,8 @@ tout le reste suit.
 
 ```html
 <!-- contexte:convention
+version: 5
 profil: app
-taille: petite
 piliers: CODEMAP.md, TODOS.md, CHANGELOG.md
 docs: docs/
 archives: archives/
@@ -65,9 +65,11 @@ langue: fr
 -->
 ```
 
-Sans ce bloc, on suppose les chemins par défaut ci-dessus. `taille` se calcule en nombre de
-fichiers, hors dépendances : petite sous 150, moyenne jusqu'à 600, grande au-delà. `ctx-init.sh`
-la mesure et l'écrit.
+Sans ce bloc, on suppose les chemins par défaut ci-dessus. La ligne `version` est la seule
+obligatoire, elle fait refuser un bloc trop récent aux scripts trop anciens. La taille du projet
+ne s'écrit plus, l'audit la calcule en nombre de fichiers hors dépendances : petite sous 150,
+moyenne jusqu'à 600, grande au-delà. Les autres clés (seuils, journal, exceptions) et leurs
+défauts sont dans `references/CONFIG-PROJET.md`.
 
 Sur une codebase moyenne ou grande, la carte se découpe par zones. Une zone est un répertoire qui
 porte la sienne, `<zone>/CODEMAP.md`. L'état et le journal restent uniques à la racine. Le détail

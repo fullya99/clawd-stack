@@ -20,7 +20,7 @@ deux skills sur le même cycle se disputent le déclenchement.
 | `/clawd-stack:cloture` | En fin de session, avant un `/clear` |
 | `/clawd-stack:relance` | Après un `/clear`, pour retrouver le fil en dix lignes |
 | `/clawd-stack:audit` | Pour vérifier `CLAUDE.md` et `AGENTS.md` contre le code et les raccourcir |
-| `/clawd-stack:migrer` | Pour remettre une ancienne convention à jour (pas encore livré dans cette version) |
+| `/clawd-stack:migrer` | Pour remettre une ancienne convention à jour, sur une branche, en simulation d'abord |
 
 ## Installation
 

@@ -1,6 +1,6 @@
 <!-- contexte:convention
+version: 5
 profil: {{PROFIL}}
-taille: {{TAILLE}}
 piliers: CODEMAP.md, TODOS.md, CHANGELOG.md
 docs: {{DOCS}}
 archives: {{ARCHIVES}}

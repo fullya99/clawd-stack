@@ -160,9 +160,30 @@ les autres dans `archives/<journal>/AAAA-MM.md`, groupées par mois de l'entrée
 `ARCHIVÉ` par fichier de mois créé, jamais par entrée. Une ligne d'index dans
 `archives/README.md` par fichier créé. Lance-le en `--dry-run` d'abord, il est idempotent.
 
-Vaut pour tout journal à titres `## AAAA-MM-JJ`, pas seulement `CHANGELOG.md`. Pas de `git mv`
-ici, c'est un découpage de contenu à l'intérieur d'un fichier, la seule exception à la règle du
-`git mv` de cette page.
+Il reconnaît les trois formats de la clé `journal:` du bloc de convention : `date-titre`
+(`## AAAA-MM-JJ`), `keep-a-changelog` (`## [x.y.z] - AAAA-MM-JJ`) et `crochets`
+(`[AAAA-MM-JJ] [TYPE] texte`, une ligne par entrée ou une ligne suivie de son corps). Sans
+déclaration, il détecte le format et le dit. Vaut pour tout journal de ces formats, pas
+seulement `CHANGELOG.md`.
+
+Deux garde-fous. Un journal rangé du plus ancien au plus récent est refusé, code 3, parce que
+la rotation garderait les plus vieilles entrées et archiverait les plus récentes. Un mois qui
+dépasserait 1 500 lignes se coupe en `AAAA-MM.md`, `AAAA-MM-2.md`, et ainsi de suite, le plus
+ancien dans le rang le plus bas, chaque fichier indexé. `--plafond` règle cette limite.
+
+Pas de `git mv` ici, c'est un découpage de contenu à l'intérieur d'un fichier, la seule
+exception à la règle du `git mv` de cette page.
+
+### Les plans exécutés
+
+`ctx-rotation.sh --plans` traite `plans/*.md`. Un plan est exécuté quand l'une de ces marques
+existe : une ligne `Statut : terminé` (ou la bannière `PLAN EXÉCUTÉ`) dans ses 30 premières
+lignes, sans négation, ou une ligne de `TODOS.md` qui cite `plans/<nom>.md` avec « terminé »,
+« exécuté » ou une case cochée. Un plan exécuté de plus de 20 lignes devient un résumé de 20
+lignes au plus à son chemin d'origine : titre, objectif, registre des écarts, commits. Le texte
+intégral part dans `archives/AAAA-MM/plans/<nom>.md` par `ctx-archive.sh --resume`, avec son
+en-tête et sa ligne d'index. Le chemin ne change pas, les références entrantes restent valides.
+Le texte intégral garde tout, y compris les cases restées ouvertes. `--dry-run` s'y combine.
 
 ---
 

@@ -52,6 +52,10 @@ Le nombre dit d'aller regarder, ce qu'on trouve dit quel geste prendre.
 | une entrée de CHANGELOG | ≤ 25 lignes | 40 | pas de blocage, on signale |
 | fiche `docs/` | ≤ 200 | 250 | 300 |
 | tout journal (≥ 10 titres `## AAAA-MM-JJ`) | comme le CHANGELOG | | |
+| règles `.claude/rules/` sans `paths` (total) | ≤ 100 | 150 | 200 |
+| coût total de reprise | ≤ 450 | 600 | 900 |
+| index de la mémoire automatique | ≤ 100 | 150 | pas de blocage, hors dépôt |
+| plan terminé | résumé de 20 lignes | plus de 300 lignes, ou une case `[ ]` ouverte | pas de blocage |
 
 Taille du projet, comptée en fichiers hors `.git`, dépendances, builds, `archives/` :
 
@@ -66,7 +70,34 @@ qui revient à la clôture suivante devient un blocage. **Blocage** : la clôtur
 que ce fichier dépasse ce seuil.
 
 `ctx-audit.sh --budget` porte exactement ces chiffres, section 10. Les deux se changent ensemble,
-un seuil modifié ici et pas dans le script rend l'audit faux.
+un seuil modifié ici et pas dans le script rend l'audit faux. Les plans terminés et l'index de la
+mémoire automatique se lisent en section 11, que `--budget` saute.
+
+### Ce que le bloc règle
+
+`seuils: <fichier>=N` fixe le seuil d'**alerte** de ce fichier à N. Le seuil de blocage suit dans
+le même rapport que les valeurs par défaut du tableau, arrondi à l'entier : `CODEMAP.md=600` donne
+une alerte à 600 et un blocage à 800, comme 300 et 400 par défaut. Les surfaces qui ne sont pas un
+fichier ont leur clé : `reprise` (bloc de reprise), `cout-reprise`, `regles-sans-paths`,
+`memoire-auto`.
+
+`ajourne: <fichier>=N@AAAA-MM-JJ` gèle un dépassement à sa valeur et à sa date. Tant que le
+fichier ne dépasse pas N, son alerte ou son blocage ne se dit plus, l'audit le rappelle en
+information. S'il dépasse N, c'est un blocage : un dépassement gelé ne grossit plus. Dès qu'il
+repasse sous son seuil d'alerte, l'audit demande de retirer l'entrée.
+
+`taille-forcee: petite|moyenne|grande` impose la taille du projet au lieu de la mesure. L'audit
+dit quand la mesure la contredit.
+
+### Le coût total de reprise
+
+Ce qu'une session charge avant la première question : `CLAUDE.md`, les fichiers qu'il importe par
+`@` (quatre sauts), les règles `.claude/rules/` sans `paths`, le bloc de reprise de TODOS, le
+`CODEMAP.md` racine et les trois dernières entrées du journal. Chaque fichier peut tenir dans son
+budget et la somme déborder, c'est le cas que ce seuil attrape. `--budget` donne le détail.
+
+Une règle en `globs:` ne se charge jamais par chemin, Claude Code ne lit que `paths`. Elle compte
+donc dans les règles sans `paths`, et l'audit la signale.
 
 ## Le geste par fichier
 

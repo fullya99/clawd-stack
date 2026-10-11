@@ -17,6 +17,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 TPL="$SKILL_DIR/templates"
 
+. "$SCRIPT_DIR/ctx-commun.sh"
+
 ROOT=""
 PROFIL=""
 ZONE=""
@@ -43,7 +45,11 @@ fi
 [ -d "$ROOT" ] || { echo "Racine introuvable : $ROOT" >&2; exit 1; }
 ROOT="$(cd "$ROOT" && pwd)"
 
-DATE="$(date +%F)"
+# Un bloc plus recent que ces scripts : on refuse avant d'ecrire quoi que ce soit.
+CTX_RACINE="$ROOT"
+version_scripts || exit 1
+
+DATE="$(ctx_aujourdhui)"
 PROJECT_NAME="$(basename "$ROOT")"
 
 # --- detection du profil ------------------------------------------------------
@@ -77,12 +83,8 @@ detect_profil() {
 # Les memes exclusions que ctx-audit.sh, les deux doivent compter pareil.
 detect_taille() {
   local r="$1" n
-  n="$(cd "$r" && find . -type f \
-        -not -path './.git/*' -not -path './archives/*' -not -path '*/node_modules/*' \
-        -not -path '*/vendor/*' -not -path '*/.venv/*' -not -path '*/venv/*' \
-        -not -path '*/dist/*' -not -path '*/build/*' -not -path '*/target/*' \
-        -not -path '*/.next/*' -not -path '*/__pycache__/*' -not -path '*/.cache/*' \
-        2>/dev/null | wc -l | tr -d ' ')"
+  # set -f : exclusions_find rend des motifs que le shell ne doit pas developper
+  n="$(cd "$r" && set -f && find . -type f $(exclusions_find) 2>/dev/null | wc -l | tr -d ' ')"
   if   [ "$n" -lt 150 ]; then echo "petite $n"
   elif [ "$n" -le 600 ]; then echo "moyenne $n"
   else echo "grande $n"; fi
@@ -164,7 +166,6 @@ render() { # <source> <destination>
   sed -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
       -e "s|{{DATE}}|$DATE|g" \
       -e "s|{{PROFIL}}|$PROFIL|g" \
-      -e "s|{{TAILLE}}|$TAILLE|g" \
       -e "s|{{ZONE}}|$ZONE|g" \
       -e "s|{{DOCS}}|$DOCS_DIR/|g" \
       -e "s|{{ARCHIVES}}|$ARCHIVES_DIR/|g" \
@@ -235,6 +236,12 @@ echo "Piliers"
 render "$TPL/CODEMAP.md"   "$ROOT/CODEMAP.md"
 render "$TPL/TODOS.md"     "$ROOT/TODOS.md"
 render "$TPL/CHANGELOG.md" "$ROOT/CHANGELOG.md"
+if [ "$DRY" -eq 1 ] && [ ! -e "$ROOT/CODEMAP.md" ]; then
+  echo "  bloc de convention que le CODEMAP recevra :"
+  sed -n '/<!-- contexte:convention/,/^-->/p' "$TPL/CODEMAP.md" \
+    | sed -e "s|{{PROFIL}}|$PROFIL|g" -e "s|{{DOCS}}|$DOCS_DIR/|g" \
+          -e "s|{{ARCHIVES}}|$ARCHIVES_DIR/|g" -e 's/^/    /'
+fi
 
 echo
 echo "Documentation"
@@ -306,8 +313,8 @@ if [ -n "$RACINE_MD" ] || [ "$DOCS_EXISTAIT" -eq 1 ]; then
 EOF
 else
   cat <<EOF
-  2. Verifier le bloc contexte:convention en tete du CODEMAP, le script a pose le profil,
-     la taille et les chemins detectes. Ce bloc rend la convention auto-descriptive.
+  2. Verifier le bloc contexte:convention en tete du CODEMAP, le script a pose le profil
+     et les chemins detectes. Ce bloc rend la convention auto-descriptive.
   3. Remplir CODEMAP.md avec la carte reelle.
 EOF
 fi

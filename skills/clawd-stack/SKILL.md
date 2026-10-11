@@ -35,10 +35,7 @@ La commande décide. Sans commande, l'intention décide.
 | relance | `/clawd-stack:relance` | début de session, où on en était | `references/MODE-CLOTURE.md`, section Mode REPRISE |
 | planifier | `/clawd-stack:planifier` | faire un plan, cadrer une idée | `references/MODE-PLANIFIER.md` |
 | audit | `/clawd-stack:audit` | CLAUDE.md ou AGENTS.md trop long ou faux | `references/MODE-AUDIT.md` |
-| migrer | `/clawd-stack:migrer` | remettre une ancienne convention à jour | n'existe pas encore dans cette version |
-
-`migrer` n'est pas livré. Dis-le, puis propose `audit` sur les fichiers d'instructions et une
-clôture complète sur une branche.
+| migrer | `/clawd-stack:migrer` | remettre une ancienne convention à jour | `references/MODE-MIGRER.md` |
 
 Ce skill ne sert pas à rédiger ou corriger un texte, c'est `style-redaction`.
 
@@ -80,7 +77,9 @@ L'ordre est voulu, le pourquoi est dans `references/RESOLUTION.md`.
 | `references/MODE-CLOTURE.md` | modes init, cloture et relance |
 | `references/MODE-PLANIFIER.md` | mode planifier |
 | `references/MODE-AUDIT.md` | mode audit |
+| `references/MODE-MIGRER.md` | mode migrer, projet qui a déjà une convention |
 | `references/CONVENTION.md` | spécification des trois piliers et propriétaire de chaque savoir |
+| `references/CONFIG-PROJET.md` | chaque clé du bloc `contexte:convention`, défaut et exemple |
 | `references/BUDGET.md` | seuils, geste par fichier qui déborde, `CLAUDE.md` sans audit |
 | `references/ZONES.md` | un répertoire mérite sa carte |
 | `references/DOCS-SYSTEM.md` | organisation de `docs/`, ADR, index |

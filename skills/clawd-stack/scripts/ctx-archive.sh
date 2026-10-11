@@ -10,6 +10,12 @@
 # Usage :
 #   bash ctx-archive.sh --verifier <chemin>
 #   bash ctx-archive.sh <chemin> --raison "..." [--remplace-par "..."] [--dry-run] [--force]
+#   bash ctx-archive.sh <chemin> --raison "..." --resume <fichier> [--remplace-par "..."] [--dry-run]
+#
+# --resume : le fichier garde sa place sous forme de resume. Le texte integral part dans
+# les archives, <fichier> est pose a l'ancien chemin, ou {{ARCHIVE}} devient le chemin de
+# l'archive. Les references entrantes restent valides, elles ne bloquent donc pas, et la
+# verification finale controle que le resume est en place. Appel de ctx-rotation.sh --plans.
 #
 # Le critere d'archivage porte sur les REFERENCES ENTRANTES, pas sur une
 # impression. Pour chaque reference : est-elle operative, quelqu'un a besoin du
@@ -21,6 +27,10 @@
 # La derniere etape est une VERIFICATION : plus aucune occurrence de l'ancien
 # chemin hors des archives, sinon sortie en erreur.
 set -euf
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=ctx-commun.sh
+. "$DIR/ctx-commun.sh"
 
 # Un accent grave litteral dans du code shell est une source de bug silencieux.
 # On le fabrique une fois, on ne l'ecrit jamais.
@@ -34,16 +44,26 @@ REMPLACE=""
 DRY=0
 FORCE=0
 VERIFIER=0
+RESUME=""
+
+# Une option a valeur sans valeur : message clair et code 2, pas une sortie muette.
+valeur() { # <option> <nombre d'arguments restants, option comprise>
+  if [ "$2" -lt 2 ]; then
+    echo "$1 attend une valeur" >&2
+    exit 2
+  fi
+}
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --root)         ROOT="${2:-}"; shift 2 ;;
-    --raison)       RAISON="${2:-}"; shift 2 ;;
-    --remplace-par) REMPLACE="${2:-}"; shift 2 ;;
-    --verifier)     VERIFIER=1; CIBLE="${2:-}"; shift 2 ;;
+    --root)         valeur "$1" $#; ROOT="$2"; shift 2 ;;
+    --raison)       valeur "$1" $#; RAISON="$2"; shift 2 ;;
+    --remplace-par) valeur "$1" $#; REMPLACE="$2"; shift 2 ;;
+    --verifier)     valeur "$1" $#; VERIFIER=1; CIBLE="$2"; shift 2 ;;
+    --resume)       valeur "$1" $#; RESUME="$2"; shift 2 ;;
     --dry-run)      DRY=1; shift ;;
     --force)        FORCE=1; shift ;;
-    -h|--help)      sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)      sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*)             echo "Option inconnue : $1" >&2; exit 2 ;;
     *)              CIBLE="$1"; shift ;;
   esac
@@ -55,13 +75,17 @@ fi
 ROOT="$(cd "$ROOT" && pwd)"
 cd "$ROOT"
 
-[ -n "$CIBLE" ] || { sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+[ -n "$CIBLE" ] || { sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
 CIBLE="${CIBLE#./}"
 
-ARCHIVES="$(grep -m1 '^archives:' CODEMAP.md 2>/dev/null | sed 's/^archives: *//;s|/*$||' || true)"
+version_scripts || exit 1
+ARCHIVES="$(conv_lire archives | sed 's|/*$||')"
+if [ -z "$ARCHIVES" ]; then
+  ARCHIVES="$(grep -m1 '^archives:' CODEMAP.md 2>/dev/null | sed 's/^archives: *//;s|/*$||' || true)"
+fi
 [ -n "$ARCHIVES" ] || ARCHIVES="archives"
-TODAY="$(date +%F)"
-MOIS="$(date +%Y-%m)"
+TODAY="$(ctx_aujourdhui)"
+MOIS="${TODAY%-*}"
 DEST="$ARCHIVES/$MOIS/$CIBLE"
 
 # --- 0. barrieres -------------------------------------------------------------
@@ -70,6 +94,12 @@ DEST="$ARCHIVES/$MOIS/$CIBLE"
 case "$CIBLE" in
   "$ARCHIVES"/*) echo "$CIBLE est deja dans $ARCHIVES/." >&2; exit 1 ;;
 esac
+if [ -n "$RESUME" ] && [ ! -f "$RESUME" ]; then
+  echo "--resume : fichier introuvable : $RESUME" >&2; exit 1
+fi
+if [ "$VERIFIER" -eq 0 ] && [ -e "$DEST" ]; then
+  echo "$DEST existe deja, l'archivage l'ecraserait. Renomme l'un des deux." >&2; exit 1
+fi
 case "$(basename "$CIBLE")" in
   CODEMAP.md|TODOS.md|CHANGELOG.md|CLAUDE.md|AGENTS.md)
     echo "$CIBLE est un pilier ou un fichier de regles, il ne s'archive pas." >&2
@@ -110,7 +140,10 @@ echo " $TODAY"
 echo "=============================================="
 echo
 echo "1. References entrantes, hors $ARCHIVES/"
-if [ "${NB_LIENS:-0}" -gt 0 ]; then
+if [ "${NB_LIENS:-0}" -gt 0 ] && [ -n "$RESUME" ]; then
+  echo "  liens vivants ($NB_LIENS), ils restent valides, le resume garde le chemin :"
+  printf '%s\n' "$LIENS" | cut -c1-160 | sed 's/^/       /'
+elif [ "${NB_LIENS:-0}" -gt 0 ]; then
   echo "  OPERATIVES, ces liens casseront ($NB_LIENS) :"
   printf '%s\n' "$LIENS" | cut -c1-160 | sed 's/^/       /'
 fi
@@ -147,7 +180,7 @@ if [ -z "$RAISON" ]; then
   exit 2
 fi
 
-if [ "${NB_LIENS:-0}" -gt 0 ] && [ "$FORCE" -eq 0 ]; then
+if [ "${NB_LIENS:-0}" -gt 0 ] && [ "$FORCE" -eq 0 ] && [ -z "$RESUME" ]; then
   echo
   echo "REFUS : $NB_LIENS lien(s) markdown vivant(s) pointent vers ce fichier." >&2
   echo "Retire-les ou reformule-les d'abord, une fiche vivante ne cite pas une archive." >&2
@@ -276,6 +309,16 @@ else
   echo "    $LIGNE"
 fi
 
+# --- 5 bis. resume en place ---------------------------------------------------
+if [ -n "$RESUME" ]; then
+  echo
+  echo "5 bis. Resume a l'ancien chemin"
+  printf '  %s reste en place, texte integral dans %s\n' "$CIBLE" "$DEST"
+  if [ "$DRY" -eq 0 ]; then
+    sed "s|{{ARCHIVE}}|$DEST|g" "$RESUME" > "$CIBLE"
+  fi
+fi
+
 # --- 6. verification ----------------------------------------------------------
 # La porte. C'est elle qui distingue un archivage fini d'un archivage a moitie
 # fait, et c'est celle qui manquait quand le geste se faisait a la main.
@@ -286,6 +329,18 @@ if [ "$DRY" -eq 1 ]; then
   echo
   echo "Simulation terminee, rien n'a ete ecrit."
   exit 0
+fi
+if [ -n "$RESUME" ]; then
+  if [ -s "$CIBLE" ] && [ -s "$DEST" ]; then
+    echo "  [ok] resume en place a $CIBLE, texte integral dans $DEST"
+    echo
+    echo "=============================================="
+    echo " Archive, resume gardé. Rien n'est commite, verifie avec git status."
+    echo "=============================================="
+    exit 0
+  fi
+  echo "  [!] le resume ou l'archive manque apres l'operation" >&2
+  exit 1
 fi
 RESTE="$(chercher "$CIBLE" | grep -v "^$DEST:" || true)"
 NB_RESTE="$(printf '%s\n' "$RESTE" | grep -c . || true)"
