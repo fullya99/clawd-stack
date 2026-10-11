@@ -77,9 +77,9 @@ lire_temoin() { # <racine> <donnees>
   [ -n "$donnees" ] || return 0
   f="$donnees/temoins/$(nom_projet "$racine")"
   [ -f "$f" ] || return 0
-  tc="$(sed -n 's/^commit=//p' "$f" | head -n 1)"
-  ta="$(sed -n 's/^arbre=//p' "$f" | head -n 1)"
-  td="$(sed -n 's/^date=//p' "$f" | head -n 1)"
+  tc="$(sed -n 's/^commit=//p' "$f" | sed -n '1p')"
+  ta="$(sed -n 's/^arbre=//p' "$f" | sed -n '1p')"
+  td="$(sed -n 's/^date=//p' "$f" | sed -n '1p')"
   [ -n "$tc" ] || return 0
   c7="$(printf '%s' "$tc" | cut -c1-7)"
   head="$(git -C "$racine" rev-parse HEAD 2>/dev/null || true)"
@@ -159,9 +159,9 @@ main() {
 
   # Bloc de reprise de TODOS.md : la date de son titre.
   if [ -f "$racine/TODOS.md" ]; then
-    reprise="$(grep -iE '^#+ .*(reprise|resume state)' "$racine/TODOS.md" 2>/dev/null | head -n 1 || true)"
+    reprise="$(grep -iE '^#+ .*(reprise|resume state)' "$racine/TODOS.md" 2>/dev/null | sed -n '1p' || true)"
     if [ -n "$reprise" ]; then
-      date_r="$(printf '%s' "$reprise" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -n 1 || true)"
+      date_r="$(grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' <<<"$reprise" | sed -n '1p' || true)"
       d="$(ctx_jours_depuis "$date_r")"
       if [ -n "$d" ] && [ "$d" -gt 14 ]; then
         ligne "Le bloc de reprise de TODOS.md date du $date_r, soit $d jours. Il est peut-etre perime."
@@ -184,7 +184,7 @@ main() {
           na="$(printf '%s\n' "$out" | grep -o '"niveau":"alerte"' | wc -l | tr -d ' ')"
           if [ "${nb:-0}" -gt 0 ] || [ "${na:-0}" -gt 0 ]; then
             ligne "${nb:-0} blocage(s) et ${na:-0} alerte(s) sur le budget de contexte. /clawd-stack:cloture pour les ranger."
-            msgs="$(printf '%s\n' "$out" | grep '"niveau":"blocage"' | sed -e 's/.*"message":"//' -e 's/"}*,*$//' -e 's/\\"/"/g' | head -n 3 | cut -c1-200 || true)"
+            msgs="$(printf '%s\n' "$out" | grep '"niveau":"blocage"' | sed -e 's/.*"message":"//' -e 's/"}*,*$//' -e 's/\\"/"/g' | sed -n '1,3p' | cut -c1-200 || true)"
             if [ -n "$msgs" ]; then
               while IFS= read -r c; do
                 [ -n "$c" ] && ligne "  blocage : $c"
@@ -209,5 +209,5 @@ FIN
 
 # main ne parle que par SORTIE, qu'on imprime ici tronquee a quinze lignes.
 main "$@" >/dev/null 2>&1 </dev/null || true
-printf '%s' "$SORTIE" | head -n 15 | cut -c1-240
+printf '%s' "$SORTIE" | sed -n '1,15p' | cut -c1-240
 exit 0
